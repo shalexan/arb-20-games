@@ -83,7 +83,13 @@
             <a href="royal/index.html" class="play-button"></a>
         </div>
     </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('cooldown') === '0') {
+  localStorage.setItem('bypassCooldown', '1');
+}
 
+    </script>
     <script src="script.js"></script>
     <div class="settings-popup animated-settings" id="settings-popup">
         <div class="settings-box">
