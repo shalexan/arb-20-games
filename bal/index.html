@@ -693,6 +693,103 @@
     ball.style.transform = "scale(1)"; 
     ball.style.transition = "none"; 
   });
+(function () {
+  const BLOCK_DURATION_MS = 2 * 60 * 60 * 1000; // 2 часа
+  const LAST_TIME_KEY = 'lastSignalTime';
+  const CHECK_INTERVAL_MS = 1000; // 1 секунда
+
+  // 🔒 Заблокировать кнопку
+  function blockButtons() {
+    const buttons = document.querySelectorAll('.confirm-button');
+    buttons.forEach(btn => {
+      btn.classList.add('disabled');
+      btn.style.pointerEvents = 'none';
+    });
+  }
+
+  // 🔓 Разблокировать кнопку
+  function unblockButtons() {
+    const buttons = document.querySelectorAll('.confirm-button');
+    buttons.forEach(btn => {
+      btn.classList.remove('disabled');
+      btn.style.pointerEvents = 'auto';
+    });
+  }
+
+  // ⏳ Обратный отсчёт
+  function startCountdown(msLeft) {
+    const overlay = document.createElement('div');
+    overlay.id = 'global-timer-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 16px;
+      z-index: 9999;
+      font-family: sans-serif;
+    `;
+    document.body.appendChild(overlay);
+
+    const update = () => {
+      const now = Date.now();
+      const lastTime = +localStorage.getItem(LAST_TIME_KEY);
+      const diff = now - lastTime;
+      const remaining = BLOCK_DURATION_MS - diff;
+
+      if (remaining <= 0) {
+        overlay.remove();
+        localStorage.removeItem(LAST_TIME_KEY);
+        unblockButtons();
+        clearInterval(timer);
+        return;
+      }
+
+      const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
+      const m = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
+      const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
+      overlay.textContent = `⏳ Подождите: ${h}:${m}:${s}`;
+    };
+
+    update();
+    const timer = setInterval(update, CHECK_INTERVAL_MS);
+  }
+
+  // 📦 Проверка по загрузке страницы
+  window.addEventListener('DOMContentLoaded', () => {
+    const lastTime = +localStorage.getItem(LAST_TIME_KEY) || 0;
+    const now = Date.now();
+
+    if (now - lastTime < BLOCK_DURATION_MS) {
+      blockButtons();
+      startCountdown(BLOCK_DURATION_MS - (now - lastTime));
+    }
+
+    // Добавляем обработчики на кнопки
+    const playButtons = document.querySelectorAll('.confirm-button');
+    playButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const now = Date.now();
+        const lastTime = +localStorage.getItem(LAST_TIME_KEY) || 0;
+
+        if (now - lastTime < BLOCK_DURATION_MS) {
+          // Заблокировано
+          return;
+        }
+
+        // Сохраняем время и блокируем
+        localStorage.setItem(LAST_TIME_KEY, now.toString());
+        blockButtons();
+        startCountdown(BLOCK_DURATION_MS);
+      });
+    });
+  });
+})();
+
 </script>
 
 </body>
