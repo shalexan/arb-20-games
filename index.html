@@ -87,6 +87,8 @@
         const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('cooldown') === '0') {
   localStorage.setItem('bypassCooldown', '1');
+} else {
+  localStorage.removeItem('bypassCooldown');
 }
 
     </script>
